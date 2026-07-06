@@ -1,36 +1,18 @@
-name: Trigger Workflow Check
-on: never
-# Remember to remove "on: never" and uncomment the "on" section below 
-# "on" is set to never to prevent workflow trigger by default.
-# During operation, remove "on: never" completely.
-# on:
-#   schedule:
-#     - cron: '0 0 * * *'  # Every day at 00:00 UTC
-#     - cron: '0 6 * * *'  # Every day at 06:00 UTC
-#     - cron: '0 12 * * *' # Every day at 12:00 UTC
-#     - cron: '0 18 * * *' # Every day at 18:00 UTC
+name: Activate Workflow
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
-  trigger-workflow:
+  activate:
     runs-on: ubuntu-latest
-    timeout-minutes: 123  # Overall timeout for this job
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run workflow trigger script
-        env:
-          TOKEN: ${{ secrets.TOKEN }}
-          REPO_OWNER: ${{ secrets.REPO_OWNER }}
-          REPO_NAME: ${{ secrets.REPO_NAME }}
-          WORKFLOW_ID: ${{ secrets.WORKFLOW_ID }}
-        run: python Main.py
+      - name: Trigger Workflow
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ secrets.REPO_OWNER }}/${{ secrets.REPO_NAME }}/actions/workflows/${{ secrets.WORKFLOW_ID }}/dispatches \
+            -d '{"ref":"main"}'
